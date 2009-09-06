@@ -3,10 +3,9 @@ package WWW::FMyLife;
 use Moose;
 use XML::Simple;
 use LWP::UserAgent;
-#use MooseX::Types::URI qw( Uri ); # this doesn't work for some reason
 use WWW::FMyLife::Item;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 has 'username' => ( is => 'rw', isa => 'Str' );
 has 'password' => ( is => 'rw', isa => 'Str' );
@@ -20,7 +19,7 @@ has 'pages'    => ( is => 'rw', isa => 'Int' );
 
 has 'api_url'  => (
     is      => 'rw',
-    isa     => 'Str', # suppose to be 'Uri' but doesn't work for some reason
+    isa     => 'Str',
     default => 'http://api.betacie.com',
 );
 
@@ -204,6 +203,9 @@ sub _parse_items_as_data {
     return @items;
 }
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 __END__
@@ -214,7 +216,7 @@ WWW::FMyLife - Obtain FMyLife.com anectodes via API
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =head1 SYNOPSIS
 
