@@ -1,6 +1,14 @@
 Revision history for WWW-FMyLife
 (format of DD/MM/YY)
 
+0.07    13.09.09
+        - fixed bug in test
+        - fixed bug in top day/week/month
+        - added flop and flop day/week/month + tests
+        - removed hardcoded "no critic"s
+        - fixed critic test to only run on RELEASE_TESTING
+        - adding and fixing POD for Perl::Critic
+
 0.06    07.09.09
         - added no critic for weird critic fails
         - changed AUTHORS section to AUTHOR (critic)

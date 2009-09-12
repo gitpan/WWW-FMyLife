@@ -1,7 +1,7 @@
 #!perl
 
-# checking usage of 'top_month' method
-# top_month does not have the page parameter
+# checking usage of 'flop_week' method
+# flop_week does not have the page parameter
 
 use strict;
 use warnings;
@@ -23,14 +23,14 @@ SKIP: {
 
     $p->close;
     my $fml     = WWW::FMyLife->new();
-    my @top_month = $fml->top_month();
+    my @flop_week = $fml->flop_week();
 
-    foreach my $top (@top_month) {
-        isa_ok( $top, 'WWW::FMyLife::Item', 'Item is an object' );
+    foreach my $flop (@flop_week) {
+        isa_ok( $flop, 'WWW::FMyLife::Item', 'Item is an object' );
     }
 
     # checking one of the items
-    my $item       = shift @top_month;
+    my $item       = shift @flop_week;
     my @attributes = qw(
         author category date agree deserved text
     );
@@ -61,10 +61,10 @@ SKIP: {
     );
 
     while ( my ( $format, $type_check ) = each %format_types ) {
-        @top_month = $fml->top_month( { as => $format } );
+        @flop_week = $fml->flop_week( { as => $format } );
 
-        foreach my $top (@top_month) {
-            $type_check->($top);
+        foreach my $flop (@flop_week) {
+            $type_check->($flop);
         }
     }
 }

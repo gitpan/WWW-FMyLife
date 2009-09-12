@@ -5,7 +5,7 @@ use XML::Simple;
 use LWP::UserAgent;
 use WWW::FMyLife::Item;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 has 'username' => ( is => 'rw', isa => 'Str' );
 has 'password' => ( is => 'rw', isa => 'Str' );
@@ -64,19 +64,43 @@ sub top {
 
 sub top_day {
     my ( $self, $opts ) = @_;
-    my @items = $self->_parse_options( $opts, 'top' );
+    my @items = $self->_parse_options( $opts, 'top_day' );
     return @items;
 }
 
 sub top_week {
     my ( $self, $opts ) = @_;
-    my @items = $self->_parse_options( $opts, 'top' );
+    my @items = $self->_parse_options( $opts, 'top_week' );
     return @items;
 }
 
 sub top_month {
     my ( $self, $opts ) = @_;
-    my @items = $self->_parse_options( $opts, 'top' );
+    my @items = $self->_parse_options( $opts, 'top_month' );
+    return @items;
+}
+
+sub flop {
+    my ( $self, $opts ) = @_;
+    my @items = $self->_parse_options( $opts, 'flop' );
+    return @items;
+}
+
+sub flop_day {
+    my ( $self, $opts ) = @_;
+    my @items = $self->_parse_options( $opts, 'flop_day' );
+    return @items;
+}
+
+sub flop_week {
+    my ( $self, $opts ) = @_;
+    my @items = $self->_parse_options( $opts, 'flop_week' );
+    return @items;
+}
+
+sub flop_month {
+    my ( $self, $opts ) = @_;
+    my @items = $self->_parse_options( $opts, 'flop_month' );
     return @items;
 }
 
@@ -98,14 +122,14 @@ sub _parse_options {
     my ( $as,   $page );
 
     if ( ref $opts eq 'HASH' ) {
-        $as   = $opts->{'as'};   ## no critic (ProhibitAccessOfPrivateData)
-        $page = $opts->{'page'}; ## no critic (ProhibitAccessOfPrivateData)
+        $as   = $opts->{'as'};
+        $page = $opts->{'page'};
     } else {
         $page = $opts;
     }
 
     $as   ||= 'object';
-    $page ||= 1;
+    $page ||= q{};
 
     my %types = (
         object => sub { return $self->_parse_items_as_object(@_) },
@@ -117,7 +141,7 @@ sub _parse_options {
 
     $xml || return;
 
-    $self->pages( $xml->{'pages'} ); ## no critic (ProhibitAccessOfPrivateData)
+    $self->pages( $xml->{'pages'} );
 
     my @items = $types{$as}->($xml);
 
@@ -146,7 +170,7 @@ sub _fetch_data {
 
     my $xml = XMLin( $res->decoded_content );
 
-    if ( my $raw_errors = $xml->{'errors'}->{'error'} ) { ## no critic (ProhibitAccessOfPrivateData)
+    if ( my $raw_errors = $xml->{'errors'}->{'error'} ) {
         my $array_errors =
             ref $raw_errors eq 'ARRAY' ? $raw_errors : [ $raw_errors ];
 
@@ -162,7 +186,7 @@ sub _parse_item_as_object {
     # this parses a single item
     my ( $self, $xml ) = @_;
 
-    my %item_data = %{ $xml->{'items'}{'item'} }; ## no critic (ProhibitAccessOfPrivateData)
+    my %item_data = %{ $xml->{'items'}{'item'} };
     my $item      = WWW::FMyLife::Item->new();
 
     foreach my $attr ( keys %item_data ) {
@@ -177,13 +201,13 @@ sub _parse_items_as_object {
     my ( $self, $xml ) = @_;
     my @items;
 
-    while ( my ( $id, $item_data ) = each %{ $xml->{'items'}{'item'} } ) { ## no critic (ProhibitAccessOfPrivateData)
+    while ( my ( $id, $item_data ) = each %{ $xml->{'items'}{'item'} } ) {
         my $item = WWW::FMyLife::Item->new(
             id => $id,
         );
 
         foreach my $attr ( keys %{$item_data} ) {
-            $item->$attr( $item_data->{$attr} ); ## no critic (ProhibitAccessOfPrivateData)
+            $item->$attr( $item_data->{$attr} );
         }
 
         push @items, $item;
@@ -194,14 +218,14 @@ sub _parse_items_as_object {
 
 sub _parse_items_as_text {
     my ( $self, $xml ) = @_;
-    my @items = map { $_->{'text'} } values %{ $xml->{'items'}{'item'} }; ## no critic (ProhibitAccessOfPrivateData)
+    my @items = map { $_->{'text'} } values %{ $xml->{'items'}{'item'} };
     return @items;
 }
 
 sub _parse_items_as_data {
     my ( $self, $xml ) = @_;
-    my $itemsref       = $xml->{'items'}{'item'}; ## no critic (ProhibitAccessOfPrivateData)
-    my @items          = map +{ $_ => $itemsref->{$_} }, keys %{$itemsref}; ## no critic (ProhibitAccessOfPrivateData)
+    my $itemsref       = $xml->{'items'}{'item'};
+    my @items          = map +{ $_ => $itemsref->{$_} }, keys %{$itemsref};
     return @items;
 }
 
@@ -218,18 +242,20 @@ WWW::FMyLife - Obtain FMyLife.com anecdotes via API
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =head1 SYNOPSIS
 
 THIS MODULE IS STILL UNDER INITIAL DEVELOPMENT! BE WARNED!
 
-This module fetches FMyLife.com (FML) anecdotes, comments, votes and more via API, comfortably and in an extensible manner.
-
     use WWW::FMyLife;
 
     my $fml = WWW::FMyLife->new();
     print map { "Items: $_\n" } $fml->last( { as => text' } );
+
+=head1 DESCRIPTION
+
+This module fetches FMyLife.com (FML) anecdotes, comments, votes and more via API, comfortably and in an extensible manner.
 
     my @items = $fml->top_daily();
     foreach my $item (@items) {
@@ -245,7 +271,7 @@ This module fetches FMyLife.com (FML) anecdotes, comments, votes and more via AP
 
 This module exports nothing.
 
-=head1 METHODS
+=head1 SUBROUTINES/METHODS
 
 =head2 last()
 
@@ -302,6 +328,24 @@ This method works the same as the last() method, only it fetches the top quotes.
 
 This specific variant fetches the top anecdotes from the last month.
 
+=head2 flop
+
+Fetches the flop quotes.
+
+This method, as for its variations, can format as an object, text or data.
+
+=head2 flop_day
+
+Fetches the flop quotes of the day.
+
+=head2 flop_week
+
+Fetches the flop quotes of the week.
+
+=head2 flop_month
+
+Fetches the flop quotes of the month.
+
 =head2 credentials( $username, $password ) (NOT YET FULLY IMPLEMENTED)
 
 WARNING: THIS HAS NOT YET BEEN IMPLEMENTED.
@@ -322,7 +366,15 @@ Sawyer X (XSAWYERX), C<< <xsawyerx at cpan.org> >>
 
 Tamir Lousky (TLOUSKY), C<< <tlousky at cpan.org> >>
 
-=head1 BUGS
+=head1 DEPENDENCIES
+
+L<Moose>
+
+L<XML::Simple>
+
+L<LWP::UserAgent>
+
+=head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to C<bug-www-fmylife at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=WWW-FMyLife>.
@@ -375,7 +427,7 @@ Apparently supports more options right now. Mainly for French version but seems 
 
 =back
 
-=head1 COPYRIGHT & LICENSE
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2009 Sawyer X, Tamir Lousky.
 
